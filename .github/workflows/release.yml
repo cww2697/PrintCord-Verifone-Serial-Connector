@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Generate Changelog and Release Metadata
+        id: release_info
+        run: |
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG_NAME="v${VERSION}-${SHORT_SHA}"
+          RELEASE_TITLE="Release ${VERSION} (${SHORT_SHA})"
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_title=${RELEASE_TITLE}" >> $GITHUB_OUTPUT
+
+          echo "## Changelog" > changelog.md
+          echo "" >> changelog.md
+          git log --pretty=format:"* %s (%h)" >> changelog.md
+          echo "" >> changelog.md
+
+      - name: Find Release JAR
+        id: jar_finder
+        run: |
+          # Find the main executable JAR file while explicitly excluding -plain JARs
+          MAIN_JAR=$(find build/libs -maxdepth 1 -name "*.jar" ! -name "*-plain.jar" | head -n 1)
+          if [ -z "$MAIN_JAR" ]; then
+            echo "Error: No main JAR file found in build/libs"
+            exit 1
+          fi
+          echo "jar_path=${MAIN_JAR}" >> $GITHUB_OUTPUT
+          echo "Found JAR: ${MAIN_JAR}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          name: ${{ steps.release_info.outputs.release_title }}
+          body_path: changelog.md
+          files: ${{ steps.jar_finder.outputs.jar_path }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'application'
 }
 
 group = 'net.canyonwolf'
@@ -28,8 +27,21 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-application {
-    mainClass = 'net.canyonwolf.printcord.connector.Main'
+tasks.register('plainJar', Jar) {
+    archiveClassifier = 'plain'
+    from sourceSets.main.output
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'net.canyonwolf.printcord.connector.Main'
+        )
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 test {
