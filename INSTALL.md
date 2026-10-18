@@ -71,7 +71,9 @@ During setup, you will be prompted for:
    - Default is `9600`. Enter your printer's BAUD rate (e.g., `9600`, `19200`, `38400`, `115200`).
 3. **Character Column Width**:
    - Number of characters per line (e.g., `24` for standard Verifone 24-column roll, `32`, `40`, `42`, or `48` for wider thermal paper).
-4. **Printer Name**:
+4. **Feed Lines**:
+   - Number of blank lines fed after printing a receipt (default is `4`).
+5. **Printer Name**:
    - A friendly name displayed in Discord (e.g., `Front Desk Verifone`).
 
 ---
@@ -201,8 +203,9 @@ To keep the connector running continuously on system startup:
 
 | Option | Alias | Description |
 |---|---|---|
-| `--setup` | `--configure` | Launches the interactive configuration wizard for COM port, BAUD rate, width, and bot registration |
+| `--setup` | `--configure` | Launches the interactive configuration wizard for COM port, BAUD rate, width, feed lines, and bot registration |
 | `--url <url>` | | Sets / overrides the PrintCord API base URL |
+| `--feed-lines <count>` | | Overrides the number of trailing paper feed lines after print jobs |
 | `--background` | `-d`, `--daemon` | Runs the connector as a non-interactive background daemon |
 | `--config <path>` | | Uses a custom configuration file path instead of the system default |
 | `--deregister` | | Deregisters the connector from the PrintCord server and clears local credentials |

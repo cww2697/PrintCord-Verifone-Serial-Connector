@@ -21,6 +21,7 @@ public class Main {
     public static void main(String[] args) {
         String configPathOverride = null;
         String apiUrlOverride = null;
+        Integer feedLinesOverride = null;
         boolean runBackground = false;
         boolean runConfigWizard = false;
         boolean deregisterRequested = false;
@@ -31,6 +32,12 @@ public class Main {
                 configPathOverride = args[++i];
             } else if (arg.equals("--url") && i + 1 < args.length) {
                 apiUrlOverride = args[++i];
+            } else if ((arg.equals("--feed-lines") || arg.equals("--feedLines")) && i + 1 < args.length) {
+                try {
+                    feedLinesOverride = Integer.parseInt(args[++i]);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid --feed-lines argument, must be an integer.");
+                }
             } else if (arg.equals("--setup") || arg.equals("--configure")) {
                 runConfigWizard = true;
             } else if (arg.equals("--daemon") || arg.equals("--background") || arg.equals("-d")) {
@@ -70,6 +77,15 @@ public class Main {
             }
         }
 
+        if (feedLinesOverride != null && feedLinesOverride >= 0) {
+            config.setLineFeedLines(feedLinesOverride);
+            try {
+                configManager.save(config);
+            } catch (IOException e) {
+                System.err.println("Failed to save updated feed lines: " + e.getMessage());
+            }
+        }
+
         PrintCordApiClient apiClient = new PrintCordApiClient(config.getApiUrl());
 
         if (deregisterRequested) {
@@ -101,6 +117,7 @@ public class Main {
         System.out.println("Printer Name: " + config.getPrinterName());
         System.out.println("Port: " + config.getPortName() + " @ " + config.getBaudRate() + " baud");
         System.out.println("Width: " + config.getPrintWidth() + " columns");
+        System.out.println("Feed lines: " + config.getLineFeedLines());
         System.out.println("Poll interval: " + config.getPollIntervalSeconds() + "s");
 
         VerifoneSerialPrinter printer = new VerifoneSerialPrinter(config);
@@ -226,6 +243,21 @@ public class Main {
             config.setPrintWidth(defaultWidth);
         }
 
+        // Feed Lines
+        int defaultFeedLines = config.getLineFeedLines() >= 0 ? config.getLineFeedLines() : 4;
+        System.out.print("Enter number of feed lines after receipt [" + defaultFeedLines + "]: ");
+        String feedLinesInput = scanner.hasNextLine() ? scanner.nextLine().trim() : "";
+        if (!feedLinesInput.isEmpty()) {
+            try {
+                config.setLineFeedLines(Integer.parseInt(feedLinesInput));
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid feed lines format. Keeping default " + defaultFeedLines);
+                config.setLineFeedLines(defaultFeedLines);
+            }
+        } else {
+            config.setLineFeedLines(defaultFeedLines);
+        }
+
         // Printer Name
         String defaultName = config.getPrinterName() != null ? config.getPrinterName() : "Verifone Serial Printer";
         System.out.print("Enter printer name [" + defaultName + "]: ");
@@ -335,11 +367,12 @@ public class Main {
     private static void printHelp() {
         System.out.println("Usage: java -jar verifone-serial-connector.jar [OPTIONS]");
         System.out.println("Options:");
-        System.out.println("  --setup, --configure   Run printer & serial configuration wizard");
-        System.out.println("  --url <url>            Override PrintCord API base URL");
-        System.out.println("  --config <path>        Custom configuration JSON file path");
-        System.out.println("  --background, -d       Run in background daemon mode without interactive prompt");
-        System.out.println("  --deregister           Deregister current connector from PrintCord server");
-        System.out.println("  --help, -h             Display this help message");
+        System.out.println("  --setup, --configure     Run printer & serial configuration wizard");
+        System.out.println("  --url <url>              Override PrintCord API base URL");
+        System.out.println("  --feed-lines <count>     Override number of trailing paper feed lines");
+        System.out.println("  --config <path>          Custom configuration JSON file path");
+        System.out.println("  --background, -d         Run in background daemon mode without interactive prompt");
+        System.out.println("  --deregister             Deregister current connector from PrintCord server");
+        System.out.println("  --help, -h               Display this help message");
     }
 }

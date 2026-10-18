@@ -52,6 +52,7 @@ For complete installation, setup, and background service configuration instructi
 ### Command Line Options
 - `--setup` / `--configure`: Launch interactive serial and printer configuration wizard.
 - `--url <url>`: Override the PrintCord API base URL.
+- `--feed-lines <count>`: Override number of trailing paper feed lines.
 - `--background`, `-d`: Run in background mode without interactive CLI prompt.
 - `--config <path>`: Specify custom configuration file location.
 - `--deregister`: Deregister the printer connector from the PrintCord server.

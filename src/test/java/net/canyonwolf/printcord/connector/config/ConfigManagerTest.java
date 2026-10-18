@@ -24,6 +24,7 @@ public class ConfigManagerTest {
         initial.setPortName("COM3");
         initial.setBaudRate(19200);
         initial.setPrintWidth(32);
+        initial.setLineFeedLines(6);
         initial.setApiToken("test-token-123");
         initial.setConnectorId("uuid-1234");
         initial.setPrinterName("Kitchen Verifone");
@@ -37,6 +38,7 @@ public class ConfigManagerTest {
         assertEquals("COM3", loaded.getPortName());
         assertEquals(19200, loaded.getBaudRate());
         assertEquals(32, loaded.getPrintWidth());
+        assertEquals(6, loaded.getLineFeedLines());
         assertEquals("test-token-123", loaded.getApiToken());
         assertEquals("uuid-1234", loaded.getConnectorId());
         assertEquals("Kitchen Verifone", loaded.getPrinterName());
